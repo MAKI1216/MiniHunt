@@ -7,6 +7,7 @@
 #include "EnhancedInputComponent.h"
 #include "EnhancedInputSubsystems.h"
 #include "Camera/CameraComponent.h"
+#include "Net/UnrealNetwork.h"
 
 #pragma region Engine
 // Sets default values
@@ -79,6 +80,14 @@ void AHunterCharacterBase::Tick(float DeltaTime)
 	Super::Tick(DeltaTime);
 
 }
+
+void AHunterCharacterBase::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
+{
+	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+	
+	//同步当前角色状态
+	DOREPLIFETIME_CONDITION(AHunterCharacterBase, CurrentCharacterState, COND_None);
+}
 #pragma endregion
 
 #pragma region Input
@@ -100,6 +109,11 @@ void AHunterCharacterBase::SetupPlayerInputComponent(UInputComponent* PlayerInpu
 
 		// 绑定交互键 (F)
 		EnhancedInputComponent->BindAction(FInteractAction, ETriggerEvent::Started, this, &AHunterCharacterBase::InteractButtonPressed);
+		
+		// 绑定开火键 (鼠标左键)
+		// 连发系统使用 Triggered 是正确的：它会在按住时持续触发（每帧调用）。
+		// 注意：需要在 FireButtonPressed 或 CombatComponent 中处理射击间隔。
+		EnhancedInputComponent->BindAction(FireAction, ETriggerEvent::Triggered, this, &AHunterCharacterBase::FireButtonPressed);
 	}
 }
 // 移动
@@ -129,6 +143,16 @@ void AHunterCharacterBase::Look(const FInputActionValue& Value)
 		AddControllerPitchInput(LookAxisVector.Y);
 	}
 }
+
+void AHunterCharacterBase::FireButtonPressed()
+{
+	// TODO: 调用 CombatComponent 进行射击
+	
+	if (CombatComponent)
+	{
+		CombatComponent->Fire();
+	} 
+}
 #pragma endregion
 
 #pragma region PickAndEquipWeapon
@@ -141,6 +165,8 @@ void AHunterCharacterBase::InteractButtonPressed()
 		CombatComponent->PickupWeapon(OverlappingWeapon, FPArmMesh, GetMesh());
 	}
 }
+
+
 
 //设置暂存脚下的武器
 void AHunterCharacterBase::SetOverlappingWeapon(AWeaponBase* Weapon)

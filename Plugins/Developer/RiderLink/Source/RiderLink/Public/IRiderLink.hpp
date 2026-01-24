@@ -1,6 +1,6 @@
 ﻿#pragma once
 
-#include "RdEditorModel/RdEditorModel.Generated.h"
+#include "RdEditorModel/RdEditorModel.Pregenerated.h"
 #include "lifetime/LifetimeDefinition.h"
 
 #include "Modules/ModuleInterface.h"
@@ -25,4 +25,5 @@ public:
 	virtual void ViewModel(rd::Lifetime Lifetime, TFunction<void(rd::Lifetime, JetBrains::EditorPlugin::RdEditorModel const&)> Handler) = 0;
 	virtual void QueueAction(TFunction<void()> Handler) = 0;
 	virtual bool FireAsyncAction(TFunction<void(JetBrains::EditorPlugin::RdEditorModel const&)> Handler) = 0;
+	virtual void QueueModelAction(TFunction<void(JetBrains::EditorPlugin::RdEditorModel const&)> Handler) = 0;
 };

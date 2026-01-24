@@ -73,6 +73,10 @@ public:
 	UPROPERTY(ReplicatedUsing = OnRep_WeaponState, VisibleAnywhere, Category = "Weapon Properties")
 	EWeaponState WeaponState;
 
+	//获取武器类型
+	UFUNCTION(BlueprintCallable, Category = "Weapon Properties")
+	EWeaponType GetWeaponType() const { return WeaponType; }
+	
 	//同步武器状态的回调函数
 	UFUNCTION()
 	void OnRep_WeaponState();

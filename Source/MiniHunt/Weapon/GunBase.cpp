@@ -41,10 +41,7 @@ void AGunBase::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetime
 #pragma endregion
 
 
-void AGunBase::Fire()
-{
-	Super::Fire();
-}
+
 
 void AGunBase::Dropped()
 {
@@ -89,8 +86,17 @@ void AGunBase::OnOtherEndOverlap(UPrimitiveComponent* OverlappedComponent, AActo
 }
 #pragma endregion
 
+#pragma region Fire
+void AGunBase::Fire()
+{
+	Super::Fire();
+	
+}
+#pragma endregion
+
 void AGunBase::MultiShottingEffect_Implementation()
 {
+			
 }
 
 bool AGunBase::MultiShottingEffect_Validate()

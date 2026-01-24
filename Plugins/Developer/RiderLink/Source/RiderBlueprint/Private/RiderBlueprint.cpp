@@ -2,17 +2,24 @@
 
 #include "BlueprintProvider.hpp"
 #include "IRiderLink.hpp"
-#include "Model/RdEditorProtocol/RdEditorModel/RdEditorModel.Generated.h"
+#include "Model/RdEditorProtocol/RdEditorModel/RdEditorModel.Pregenerated.h"
 
-#include "AssetRegistryModule.h"
+
 #include "Engine/Blueprint.h"
 #include "Framework/Docking/TabManager.h"
 #include "HAL/PlatformProcess.h"
 #include "MessageEndpoint.h"
 #include "MessageEndpointBuilder.h"
 #include "Modules/ModuleManager.h"
+#include "Runtime/Launch/Resources/Version.h"
 
-#define LOCTEXT_NAMESPACE "RiderLink"
+#if ENGINE_MAJOR_VERSION < 5
+#include "AssetRegistryModule.h"
+#else
+#include "AssetRegistry/AssetRegistryModule.h"
+#endif
+
+#define LOCTEXT_NAMESPACE "RiderBlueprint"
 
 DEFINE_LOG_CATEGORY(FLogRiderBlueprintModule);
 
@@ -74,8 +81,7 @@ void FRiderBlueprintModule::StartupModule()
                     {
                         Window->HACK_ForceToFront();
                     }
-                    BluePrintProvider::OpenBlueprint(
-                        s.get_pathName(), MessageEndpoint);
+                    BluePrintProvider::OpenBlueprint(s, MessageEndpoint);
                 }
                 catch (std::exception const& e)
                 {
@@ -98,3 +104,5 @@ void FRiderBlueprintModule::ShutdownModule()
     ModuleLifetimeDef.terminate();
     UE_LOG(FLogRiderBlueprintModule, Verbose, TEXT("SHUTDOWN FINISH"));
 }
+
+#undef LOCTEXT_NAMESPACE

@@ -69,7 +69,7 @@ public:
 	 * \param request value to deliver
 	 * \return result of remote invoking
 	 */
-	WiredRdTask<TRes, ResSer> sync(TReq const& request, std::chrono::milliseconds timeout = 200ms) const
+	WiredRdTask<TRes, ResSer> sync(TReq const& request, std::chrono::milliseconds timeout = std::chrono::milliseconds(200)) const
 	{
 		auto task = start_internal(request, true, &SynchronousScheduler::Instance());
 		auto time_at_start = std::chrono::system_clock::now();
@@ -102,7 +102,7 @@ public:
 		return start_internal(request, false, responseScheduler ? responseScheduler : get_default_scheduler());
 	}
 
-	void on_wire_received(Buffer buffer) const override
+	void on_wire_received(Buffer) const override
 	{
 		RD_ASSERT_MSG(false, "RdCall.on_wire_received called")
 	}

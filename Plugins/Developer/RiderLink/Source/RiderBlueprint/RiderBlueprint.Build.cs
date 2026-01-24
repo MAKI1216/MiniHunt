@@ -1,5 +1,3 @@
-// Copyright 1998-2020 Epic Games, Inc. All Rights Reserved.
-
 using UnrealBuildTool;
 
 public class RiderBlueprint : ModuleRules
@@ -13,6 +11,10 @@ public class RiderBlueprint : ModuleRules
 #endif
 		
 		bUseRTTI = true;
+
+#if UE_5_2_OR_LATER
+		bDisableStaticAnalysis = true;
+#endif
 		
 		PublicDependencyModuleNames.Add("RD");
 

@@ -1,5 +1,3 @@
-// Copyright 1998-2018 Epic Games, Inc. All Rights Reserved.
-
 using System.IO;
 using UnrealBuildTool;
 
@@ -9,9 +7,20 @@ public class RD : ModuleRules
 	{
 		PublicDependencyModuleNames.Add("Core");
 		bUseRTTI = true;
-		bEnforceIWYU = false;
 
-#if UE_4_22_OR_LATER
+#if UE_5_2_OR_LATER
+		bDisableStaticAnalysis = true;
+#endif
+
+#if UE_5_2_OR_LATER
+		IWYUSupport = IWYUSupport.KeepAsIs;
+#else
+		bEnforceIWYU = false;
+#endif
+
+#if UE_5_6_OR_LATER
+		CppStandard = CppStandardVersion.Cpp20;
+#elif UE_4_22_OR_LATER
 		CppStandard = CppStandardVersion.Cpp17;
 #endif
 
@@ -21,11 +30,17 @@ public class RD : ModuleRules
 		PCHUsage = PCHUsageMode.NoSharedPCHs;
 #endif
 
-#if UE_4_24_OR_LATER
+#if UE_5_6_OR_LATER
+		CppCompileWarningSettings.ShadowVariableWarningLevel = WarningLevel.Off;
+#elif UE_4_24_OR_LATER
 		ShadowVariableWarningLevel = WarningLevel.Off;
-		bUseUnity = false;
 #else
 		bEnableShadowVariableWarnings = false;
+#endif
+
+#if UE_4_24_OR_LATER
+		bUseUnity = false;
+#else
 		bFasterWithoutUnity = true;
 #endif
 
@@ -67,7 +82,7 @@ public class RD : ModuleRules
 			, "thirdparty", "thirdparty/ordered-map/include"
 			, "thirdparty/optional/tl", "thirdparty/variant/include"
 			, "thirdparty/string-view-lite/include", "thirdparty/spdlog/include"
-			, "thirdparty/clsocket/src", "thirdparty/CTPL/include"
+			, "thirdparty/clsocket/src", "thirdparty/CTPL/include", "thirdparty/utf-cpp/include"
 		};
 
 		foreach (var Item in Paths)

@@ -4,12 +4,26 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Character.h"
+#include "Kismet/KismetMathLibrary.h"
 #include "HunterCharacterBase.generated.h"
 
 class AWeaponBase;
 class UCombatComponent;
 struct FInputActionValue;
 class UCameraComponent;
+
+//枚举类型，表示角色当前状态，有空闲，正在开火，正在换弹，后续添加
+UENUM(BlueprintType)
+enum class EHunterCharacterState : uint8
+{
+	Idle UMETA(DisplayName="Idle"),//空闲(或移动)
+	GunFiring UMETA(DisplayName="GunFiring"),//正在开火
+	GunReloading UMETA(DisplayName="GunReloading"),//正在换弹
+	WeaponSwitching UMETA(DisplayName="WeaponSwitching"),//正在更换武器
+	UsingSkill UMETA(DisplayName="UsingSkill"),//正在使用技能
+	UsingItem UMETA(DisplayName="UsingItem"),//正在使用道具
+	PickingUp UMETA(DisplayName="PickingUp"),//正在拾取道具或武器
+};
 
 UCLASS()
 #pragma region Engine
@@ -55,6 +69,21 @@ private:
 	// 战斗组件
 	UPROPERTY(BlueprintReadOnly, Category = Component, meta=(AllowPrivateAccess="true"))
 	UCombatComponent* CombatComponent;
+public:
+	//获取相机组件
+	UCameraComponent* GetPlayerCamera() const { return PlayerCamera; };
+#pragma endregion
+
+#pragma region CharacterProperties
+public:
+	// 当前角色状态
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category=Character, meta=(AllowPrivateAccess="true"),Replicated)
+	EHunterCharacterState CurrentCharacterState;
+	
+	// 判断是否移动的函数
+	UFUNCTION()
+	bool IsMoving(){return UKismetMathLibrary::VSize(GetVelocity())>0.1f;};
+
 #pragma endregion
 
 #pragma region Weapon
@@ -86,6 +115,10 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category=Input, meta=(AllowPrivateAccess = "true"))
 	class UInputAction* LookAction;
 
+	/** 开火键输入，绑定鼠标左键 */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta=(AllowPrivateAccess = "true"))
+	class UInputAction* FireAction;
+	
 	/** 交互键输入，绑定 F 键 */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input)
 	class UInputAction* FInteractAction;
@@ -98,5 +131,8 @@ public:
 	
 	// 按下 F 键触发的函数
 	void InteractButtonPressed();
+	
+	// 按下鼠标左键触发的函数
+	void FireButtonPressed();
 #pragma endregion
 };
