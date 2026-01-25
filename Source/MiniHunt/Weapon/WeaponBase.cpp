@@ -5,6 +5,7 @@
 
 #include "Components/SphereComponent.h"
 #include "Components/WidgetComponent.h"
+#include "MiniHunt/Character/HunterCharacterBase.h"
 #include "Net/UnrealNetwork.h"
 
 // WeaponBase.cpp
@@ -107,11 +108,11 @@ void AWeaponBase::Equip(USceneComponent* InParent1P, USceneComponent* InParent3P
 		SetActorEnableCollision(false); // 装备后关闭武器碰撞，防止挡路
 		PickupWidget->SetVisibility(false); // 确保 UI 关闭
 
-		// 2. 挂载 1P 模型 -> 手臂的 WeaponSocket
-		WeaponMesh1P->AttachToComponent(InParent1P, FAttachmentTransformRules::SnapToTargetNotIncludingScale, FName("WeaponSocket"));
-        
-		// 3. 挂载 3P 模型 -> 身体的 WeaponSocket
-		WeaponMesh3P->AttachToComponent(InParent3P, FAttachmentTransformRules::SnapToTargetNotIncludingScale, FName("WeaponSocket"));
+		//2. 挂载，子类虚函数自己去实现
+		
+		
+		//3. 调用character函数修改角色动画蓝图参数，子类虚函数自己去实现
+		
 		
 	}
 	
@@ -128,28 +129,72 @@ void AWeaponBase::SetWeaponState(EWeaponState State)
 void AWeaponBase::OnRep_WeaponState()
 {
 	switch (WeaponState)
-	{
-	case EWeaponState::EWS_Equipped:
-		// 关闭碰撞
-		SphereCollision3P->SetCollisionEnabled(ECollisionEnabled::NoCollision);
-		WeaponMesh3P->SetSimulatePhysics(false);
-		WeaponMesh3P->SetEnableGravity(false);
-		WeaponMesh3P->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+    {
+    // ----------------------------------------------------------------
+    // 状态 A: 装备中 (拿在手上)
+    // ----------------------------------------------------------------
+    case EWeaponState::EWS_Equipped:
+       // 1. 【必须】客户端必须自己关物理
+       SphereCollision3P->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+       WeaponMesh3P->SetSimulatePhysics(false);
+       WeaponMesh3P->SetEnableGravity(false);
+       WeaponMesh3P->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+       
+       // 2. 恢复可见性 (防止从背包拿出来时看不见)
+       WeaponMesh1P->SetVisibility(true); 
+       WeaponMesh3P->SetVisibility(true);
 
-		
-		// 【关键】由 Weapon 自己处理挂载，或者由 Character 处理
-		// 通常如果 SetOwner 已经同步过来，这里可以处理一些特效
-		// 实际的 AttachToComponent 建议放在 CombatComponent 的 OnRep 或者这里的逻辑中
-		break;
+       // 3. 【必须】挂载 1P 模型 (子组件挂载不同步，必须客户端自己做)
+       if (AHunterCharacterBase* Character = Cast<AHunterCharacterBase>(GetOwner()))
+       {
+          Equip(Character->GetFPArmMesh(), Character->GetMesh());
+       }
+       break;
 
-	case EWeaponState::EWS_Dropped:
-		// 开启物理，扔在地上
-		WeaponMesh3P->SetSimulatePhysics(true);
-		WeaponMesh3P->SetEnableGravity(true);
-		WeaponMesh3P->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
-		SphereCollision3P->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
-		break;
-	}
+    // ----------------------------------------------------------------
+    // 状态 B: 在背包里 (持有但不装备)
+    // ----------------------------------------------------------------
+    case EWeaponState::EWS_PossesButNotMoving:
+       // 1. 【必须】关物理
+       SphereCollision3P->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+       WeaponMesh3P->SetSimulatePhysics(false);
+       WeaponMesh3P->SetEnableGravity(false);
+       WeaponMesh3P->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+       
+       // 2. 【核心】隐藏 1P 模型 (枪在背上，所以眼睛里不能看到枪)
+       WeaponMesh1P->SetVisibility(false);
+
+       // 3. 处理 3P 模型 (挂在背上)
+       // 虽然根组件的 Attach 会自动同步，但为了保证新加入玩家(JIP)也能看到枪在背上，
+       // 这里建议写上，或者用来处理"从手里放回背上"的动画过渡逻辑
+       if (AHunterCharacterBase* Character = Cast<AHunterCharacterBase>(GetOwner()))
+       {
+           WeaponMesh3P->SetVisibility(true);
+           WeaponMesh3P->AttachToComponent(
+               Character->GetMesh(), 
+               FAttachmentTransformRules::SnapToTargetNotIncludingScale, 
+               FName("BackpackSocket") 
+           );
+       		// 如果不想做背枪，直接隐藏它
+       		WeaponMesh3P->SetHiddenInGame(true); 
+       }
+       break;
+
+    // ----------------------------------------------------------------
+    // 状态 C: 掉在地上
+    // ----------------------------------------------------------------
+    case EWeaponState::EWS_Dropped:
+       // 1. 【必须】开物理
+       WeaponMesh3P->SetSimulatePhysics(true);
+       WeaponMesh3P->SetEnableGravity(true);
+       WeaponMesh3P->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
+       SphereCollision3P->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
+
+       // 2. 隐藏 1P，显示 3P
+       WeaponMesh1P->SetVisibility(false);
+       WeaponMesh3P->SetVisibility(true);
+       break;
+    }
 }
 
 void AWeaponBase::ShowPickupWidget(bool bShow)

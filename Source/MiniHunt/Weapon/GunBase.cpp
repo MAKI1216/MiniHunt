@@ -4,7 +4,10 @@
 #include "MiniHunt/Weapon/GunBase.h"
 
 #include "Components/SphereComponent.h"
+#include "Components/WidgetComponent.h"
 #include "MiniHunt/Character/HunterCharacterBase.h"
+#include "MiniHunt/Character/CombatComponent.h" // 引入 CombatComponent
+#include "MiniHunt/Controller/HunterPlayerController.h" // 引入 Controller
 #include "Net/UnrealNetwork.h"
 
 #pragma region Engine
@@ -40,9 +43,6 @@ void AGunBase::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetime
 }
 #pragma endregion
 
-
-
-
 void AGunBase::Dropped()
 {
 	Super::Dropped();
@@ -51,7 +51,46 @@ void AGunBase::Dropped()
 #pragma region PickAndEquip
 void AGunBase::Equip(USceneComponent* InParent1P, USceneComponent* InParent3P)
 {
-	Super::Equip(InParent1P, InParent3P);
+	if (InParent1P && InParent3P)
+	{
+		// 1. 设置状态，父类虚函数写好了
+		SetActorEnableCollision(false); // 装备后关闭武器碰撞，防止挡路
+		PickupWidget->SetVisibility(false); // 确保 UI 关闭
+	
+		//2. 挂载，子类虚函数自己去实现
+		switch (GunType)
+		{
+		case EGunType::EGT_Rifle:
+			// 挂载 1P 模型 -> 手臂的 WeaponSocket
+			WeaponMesh1P->AttachToComponent(InParent1P, FAttachmentTransformRules::SnapToTargetNotIncludingScale, FName("WeaponSocket"));
+        
+			// 挂载 3P 模型 -> 身体的 WeaponSocket
+			WeaponMesh3P->AttachToComponent(InParent3P, FAttachmentTransformRules::SnapToTargetNotIncludingScale, FName("WeaponSocket"));
+			break;
+		case EGunType::EGT_Pistol:
+			//todo 手枪挂载
+			break;
+		case EGunType::EGT_Sniper:
+			//todo 狙击枪挂载
+			break;
+		}
+	
+		//3. 调用character函数修改角色动画蓝图参数，子类虚函数自己去实现
+		AHunterCharacterBase* Character = Cast<AHunterCharacterBase>(GetOwner());
+		if (Character)
+		{
+			Character->SetGunTypeAndIsWithGun(true, GunType);
+			
+			// 获取 CombatComponent 以读取背包子弹数量
+			if (UCombatComponent* CombatComp = Character->FindComponentByClass<UCombatComponent>())
+			{
+				int32 BagAmmo = CombatComp->GetBagBulletCount(BulletType);
+				// 4. 修改子弹ui，客户端rpc
+				ClientUpdateAmmoUI(ClipCurrentAmmo, BagAmmo);
+			}
+		}
+	}
+	
 }
 // 角色进入武器检测范围
 void AGunBase::OnOtherBeginOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor,
@@ -103,3 +142,19 @@ bool AGunBase::MultiShottingEffect_Validate()
 {
 	return true;
 }
+
+#pragma region GunUI
+void AGunBase::ClientUpdateAmmoUI_Implementation(int32 CurrentAmmo, int32 MaxAmmo)
+{
+	// 获取 Owner (Character)
+	if (AHunterCharacterBase* Character = Cast<AHunterCharacterBase>(GetOwner()))
+	{
+		// 获取 Controller
+		if (AHunterPlayerController* PC = Cast<AHunterPlayerController>(Character->GetController()))
+		{
+			// 调用 UI 更新函数
+			PC->UpdateAmmoUI(CurrentAmmo, MaxAmmo);
+		}
+	}
+}
+#pragma endregion

@@ -5,6 +5,7 @@
 #include "CoreMinimal.h"
 #include "GameFramework/Character.h"
 #include "Kismet/KismetMathLibrary.h"
+#include "MiniHunt/Weapon/GunBase.h"
 #include "HunterCharacterBase.generated.h"
 
 class AWeaponBase;
@@ -82,7 +83,11 @@ public:
 	
 	// 判断是否移动的函数
 	UFUNCTION()
-	bool IsMoving(){return UKismetMathLibrary::VSize(GetVelocity())>0.1f;};
+	bool IsMoving() const {return UKismetMathLibrary::VSize(GetVelocity())>0.1f;};
+
+	// 设置是否持枪以及枪的类型的函数（蓝图实现）
+	UFUNCTION(BlueprintImplementableEvent, Category = "Character")
+	void SetGunTypeAndIsWithGun(bool bIsWithGun, EGunType GunType);
 
 #pragma endregion
 

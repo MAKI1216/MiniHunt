@@ -158,11 +158,23 @@ void AHunterCharacterBase::FireButtonPressed()
 #pragma region PickAndEquipWeapon
 void AHunterCharacterBase::InteractButtonPressed()
 {
-	// 如果脚下有枪，并且有战斗组件
-	if (OverlappingWeapon && CombatComponent)
+	// 1. 如果这句话没打印，说明按键绑定(IMC)有问题
+	GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, TEXT("【测试】F键 信号已接收！"));
+
+	if (OverlappingWeapon)
 	{
-		// 调用组件的拾取逻辑，传入两个 Mesh 以便挂载
-		CombatComponent->PickupWeapon(OverlappingWeapon, FPArmMesh, GetMesh());
+		// 2. 如果这句话没打印，说明碰撞检测(Overlap)有问题
+		GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, TEXT("【测试】脚下有枪，尝试拾取..."));
+        
+		if (CombatComponent)
+		{
+			CombatComponent->PickupWeapon(OverlappingWeapon, FPArmMesh, GetMesh());
+		}
+	}
+	else
+	{
+		// 3. 打印这个说明你没踩到枪
+		GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Yellow, TEXT("【测试】脚下为空 (OverlappingWeapon is Null)"));
 	}
 }
 

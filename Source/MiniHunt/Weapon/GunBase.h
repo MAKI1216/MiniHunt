@@ -164,4 +164,11 @@ public:
 	void MultiShottingEffect_Implementation();
 	bool MultiShottingEffect_Validate();
 #pragma endregion
+	
+#pragma region GunUI
+public:
+	//客户端rpc，更新持枪的客户端ui
+	UFUNCTION(Client, Reliable)
+	void ClientUpdateAmmoUI(int32 CurrentAmmo, int32 MaxAmmo);
+#pragma endregion 
 };

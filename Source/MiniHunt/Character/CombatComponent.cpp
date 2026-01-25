@@ -186,24 +186,21 @@ void UCombatComponent::PickupWeapon(AWeaponBase* WeaponToPick, USceneComponent* 
 	// 情况 1: 1号位是空的 
 	if (GunNO1 == nullptr)
 	{
-		ServerPickupWeapon(GunNO1);
+		// ✅ 修正：把真正要捡的枪传给服务器
+		ServerPickupWeapon(WeaponToPick); 
 	}
 	// 情况 2: 1号位有枪，2号位空的 
 	else if (GunNO2 == nullptr)
 	{
-		// 如果你想捡起来就装备，这里也调用 EquipWeapon
-		// 这里假设只捡不换：我们需要把枪挂到背上或者隐藏起来
-		// 简单起见，这里演示直接装备新捡的枪：
-		ServerPickupWeapon(GunNO2);
+		// ✅ 修正：把真正要捡的枪传给服务器
+		ServerPickupWeapon(WeaponToPick);
 	}
-	// 情况 3: 两个位置都满了
 	else
 	{
 		if (GEngine)
 		{
 			GEngine->AddOnScreenDebugMessage(-1, 2.f, FColor::Red, TEXT("无法拾取更多的枪 (Inventory Full)"));
 		}
-		return; // 退出，不执行装备
 	}
 }
 
@@ -254,13 +251,14 @@ void UCombatComponent::ServerPickupWeapon_Implementation(AWeaponBase* WeaponToPi
    
 	// 4. 修改状态 (通知客户端关闭物理模拟)
 	// 注意：这会让所有客户端执行 OnRep，关闭碰撞和物理
-	WeaponToPick->SetWeaponState(EWeaponState::EWS_Equipped);
+	
 
 	// === 【核心逻辑修正】 ===
    
 	// 场景 A: 如果当前手里没有枪 -> 马上装备这把新枪
 	if (EquippedWeaponBase == nullptr) // 必须是 == nullptr
 		{
+		WeaponToPick->SetWeaponState(EWeaponState::EWS_Equipped);
 		EquippedWeaponBase = WeaponToPick;
       
 		if (AHunterCharacterBase* Character = Cast<AHunterCharacterBase>(GetOwner()))
@@ -272,6 +270,7 @@ void UCombatComponent::ServerPickupWeapon_Implementation(AWeaponBase* WeaponToPi
 	// 场景 B: 如果手里已经有枪了 -> 只捡不换
 	else
 	{
+		WeaponToPick->SetWeaponState(EWeaponState::EWS_PossesButNotMoving);
 		// ⚠️ 极其重要：
 		// 虽然不装备到手上，但必须把这把枪 Attach 到角色身上！
 		// 否则角色走了，枪还留在原地（虽然物理关了，但位置没变）。
