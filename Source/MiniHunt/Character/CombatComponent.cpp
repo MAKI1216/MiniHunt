@@ -64,21 +64,21 @@ void UCombatComponent::BeginPlay()
 	// DEBUG LOGIC (测试逻辑)
 	// =========================================================
 	// 只有服务器有权修改子弹数量
-	if (GetOwner() && GetOwner()->HasAuthority())
-	{
-		// 检查布尔变量是否打勾
-		if (bDebug_GiveMaxAmmo)
-		{
-			// 遍历背包里所有的子弹类型，全部改成 999
-			for (int32 i = 0; i < BagBulletCounts.Num(); i++)
-			{
-				BagBulletCounts[i].Count = 999;
-			}
-
-			// (可选) 打印一条红色的警告，提醒自己还没关掉它
-			GEngine->AddOnScreenDebugMessage(-1, 10.f, FColor::Red, TEXT("【警告】测试作弊模式已开启：无限子弹！"));
-		}
-	}
+	// if (GetOwner() && GetOwner()->HasAuthority())
+	// {
+	// 	// 检查布尔变量是否打勾
+	// 	if (bDebug_GiveMaxAmmo)
+	// 	{
+	// 		// 遍历背包里所有的子弹类型，全部改成 999
+	// 		for (int32 i = 0; i < BagBulletCounts.Num(); i++)
+	// 		{
+	// 			BagBulletCounts[i].Count = 999;
+	// 		}
+	//
+	// 		// (可选) 打印一条红色的警告，提醒自己还没关掉它
+	// 		GEngine->AddOnScreenDebugMessage(-1, 10.f, FColor::Red, TEXT("【警告】测试作弊模式已开启：无限子弹！"));
+	// 	}
+	// }
 	// // 绑定到 Owner 的委托
 	// if (AActor* Owner = GetOwner())
 	// {

@@ -61,6 +61,13 @@ private:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Hunter Properties", Replicated, meta = (AllowPrivateAccess = "true"))
 	float MaxHealth=100.0f;
 
+	//设置当前生命值，蓝图可调用
+	UFUNCTION(BlueprintCallable, Category = "Hunter Properties")
+	void SetHealth(float NewHealth){CurrentHealth=NewHealth;}
+	
+	//设置当前最大生命值，蓝图可调用
+	UFUNCTION(BlueprintCallable, Category = "Hunter Properties")
+	void SetMaxHealth(float NewMaxHealth){MaxHealth=NewMaxHealth;}
 public:
 	// 重置血量
 	void ResetHealth();

@@ -35,6 +35,8 @@ AHunterCharacterBase::AHunterCharacterBase()
 		FPArmMesh->SetupAttachment(PlayerCamera);
 		//设置自由自己可以看见手臂模型
 		FPArmMesh->SetOnlyOwnerSee(true);
+		
+		FPArmMesh->SetCastShadow(false);
 	}
 	//设置身体3P模型自己看不见,只进行查询碰撞,碰撞类型为Pawn
 	GetMesh()->SetOwnerNoSee(true);
